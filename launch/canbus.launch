@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch> 
+    <node name="canbus_node" type="canbus_node" pkg="canbus" output="screen">        
+    </node>
+</launch>

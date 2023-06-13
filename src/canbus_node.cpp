@@ -23,7 +23,6 @@ int main(int argc, char **argv)
     {
       ROS_INFO("BUSCAN inicializado");
 
-      double speed = 0;
       C4speed_t *p;
 
       while (ros::ok())
@@ -33,7 +32,7 @@ int main(int argc, char **argv)
         std_msgs::Float64 msg;
         msg.data = busCAN.getSpeedMPS_Unblocking(&p);
 
-        ROS_INFO("%lf", msg.data);
+        ROS_DEBUG("%lf", msg.data);
         speed_pub.publish(msg);
 
         ros::spinOnce();
