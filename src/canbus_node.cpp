@@ -1,8 +1,9 @@
-#include "ros/ros.h"
-#include "std_msgs/String.h"
-#include "std_msgs/Float64.h"
+#include <ros/ros.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Float64.h>
 
 #include "BUSCAN.hpp"
+#include "canbus/can_msg.h"
 
 int main(int argc, char **argv)
 {
@@ -11,6 +12,7 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
   ros::Publisher speed_pub = n.advertise<std_msgs::Float64>("speed", 1);
+  ros::Publisher can_pub = n.advertise<canbus::can_msg>("canbus", 1);
 
   sem_t can_sem;
   sem_init(&can_sem, 0, 0);
