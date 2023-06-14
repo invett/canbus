@@ -11,8 +11,8 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "canbus_driver");
   ros::NodeHandle n;
 
-  ros::Publisher speed_pub = n.advertise<std_msgs::Float64>("speed", 1);
-  ros::Publisher can_pub = n.advertise<canbus::can_msg>("canbus", 1);
+  //ros::Publisher speed_pub = n.advertise<std_msgs::Float64>("speed", 1);
+  ros::Publisher can_pub = n.advertise<canbus::can_msg>("data", 1);
 
   sem_t can_sem;
   sem_init(&can_sem, 0, 0);
@@ -26,16 +26,22 @@ int main(int argc, char **argv)
       ROS_INFO("BUSCAN inicializado");
 
       C4speed_t *p;
+      C4steer_t *s;
+      C4brake_t *b;
 
       while (ros::ok())
       {
 
         sem_wait(&can_sem);
-        std_msgs::Float64 msg;
-        msg.data = busCAN.getSpeedMPS_Unblocking(&p);
 
-        ROS_DEBUG("%lf", msg.data);
-        speed_pub.publish(msg);
+        canbus::can_msg msg;
+        msg.speed = busCAN.getSpeedMPS_Unblocking(&p);
+        msg.steer = busCAN.getSteeringWheelPosition_Unblocking(&s);
+        msg.brake = busCAN.getBrakeForce_Unblocking(&b);
+
+        ROS_DEBUG("%lf %lf %lf", msg.speed, msg.steer, msg.brake);
+        //speed_pub.publish(msg);
+        can_pub.publish(msg);
 
         ros::spinOnce();
       }
