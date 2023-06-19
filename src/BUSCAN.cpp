@@ -9,6 +9,7 @@ BUSCAN::BUSCAN(sem_t* sem_HLC)
     m_dataBUSCAN->C4speeds = (C4speed_t *) malloc(sizeof(C4speed_t));
     m_dataBUSCAN->C4steer = (C4steer_t *) malloc(sizeof(C4steer_t));
     m_dataBUSCAN->C4brake = (C4brake_t *) malloc(sizeof(C4brake_t));
+    m_dataBUSCAN->C4gear = (BUSCAN_data_t15_t *) malloc(sizeof(BUSCAN_data_t15_t));
     m_dataBUSCAN->C4accelDist = (C4accelDist_t *) malloc(sizeof(C4accelDist_t));
     m_BUSCAN_initialized = false;
 }
@@ -31,6 +32,7 @@ BUSCAN::~BUSCAN()
     free(m_dataBUSCAN->C4steer);
     free(m_dataBUSCAN->C4brake);
     free(m_dataBUSCAN->C4accelDist);
+    free(m_dataBUSCAN->C4gear);
     free(m_dataBUSCAN->p_BUSCAN_semaphore);
     free(m_dataBUSCAN);
 }
@@ -122,7 +124,7 @@ void* BUSCAN::read_BUSCAN(void *p)
 
             //printf("lee_BUSCAN_while 2\n");
 
-            if(id == 773 || id == 973 || id == 909 || id==1101 || id==781)
+            if(id == 773 || id == 973 || id == 909 || id==1101 || id==781 || id==1161)
             {
 
                 pthread_mutex_lock(dataBUSCAN->p_BUSCAN_semaphore); //Protect data from being read
@@ -146,6 +148,8 @@ void* BUSCAN::read_BUSCAN(void *p)
                 dataBUSCAN->data_raw[id_orden].flag=flag;
                 dataBUSCAN->data_raw[id_orden].time=time32;
 
+                //std::cerr<<"id "<< id32 << std::endl;
+
                 //if(id == 909 && (*dataBUSCAN->execute_control_thread))   // Velocidad
                 //  sem_post(&dataBUSCAN->semaforo_control_velocidad);
 
@@ -154,6 +158,7 @@ void* BUSCAN::read_BUSCAN(void *p)
                     p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
 
                     dataBUSCAN->C4gear->marchas = crudeDataBUSCAN.data_t15.marchas;
+                    //std::cerr<<"marcha "<< crudeDataBUSCAN.data_t15.marchas<< std::endl;
                     dataBUSCAN->C4gear->modo_cambio = crudeDataBUSCAN.data_t15.modo_cambio;
                     dataBUSCAN->C4gear->timestamp = crudeDataBUSCAN.data_t15.timestamp;
 
@@ -161,7 +166,7 @@ void* BUSCAN::read_BUSCAN(void *p)
                 else if(id == 781)   // Msg de la velocidad 4 ruedas a 10ms
                 {
                     p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
-
+                    
                     dataBUSCAN->C4speeds->vddKPH = crudeDataBUSCAN.data_t3.vrdd;
                     dataBUSCAN->C4speeds->vdiKPH = crudeDataBUSCAN.data_t3.vrdi;
                     dataBUSCAN->C4speeds->vtdKPH = crudeDataBUSCAN.data_t3.vrtd;
