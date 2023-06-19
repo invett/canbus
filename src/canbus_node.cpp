@@ -37,9 +37,13 @@ int main(int argc, char **argv)
         msg.speed = busCAN.getSpeedMPS_Unblocking(&p);
         msg.steer = busCAN.getSteeringWheelPosition_Unblocking(&s);
         msg.brake = busCAN.getBrakeForce_Unblocking(&b);
+        msg.gear = busCAN.getGear_Unblocking();
+        if((estado_marchas)msg.gear == estado_marchas::R)
+        {
+            msg.speed = -msg.speed;
+        }
 
-        ROS_DEBUG("%lf %lf %lf", msg.speed, msg.steer, msg.brake);
-        //speed_pub.publish(msg);
+        ROS_DEBUG("%lf %lf %lf %lf", msg.speed, msg.steer, msg.brake, msg.gear);
         can_pub.publish(msg);
 
         ros::spinOnce();

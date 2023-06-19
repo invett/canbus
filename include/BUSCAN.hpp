@@ -399,6 +399,7 @@ typedef struct
     C4steer_t               *C4steer;
     C4brake_t               *C4brake;
     C4accelDist_t           *C4accelDist;
+    BUSCAN_data_t15_t       *C4gear;
 }BUSCAN_t;
 
 
@@ -415,6 +416,8 @@ public:
     BUSCAN(sem_t *sem_HLC);
     ~BUSCAN();
     int init_BUSCAN(int bitrate);
+
+    double getGear_Unblocking();
 
     double getSpeedMPS_Unblocking(C4speed_t **C4speeds);
     double getSpeedMPS_Blocking(C4speed_t **C4speeds);

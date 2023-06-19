@@ -149,9 +149,16 @@ void* BUSCAN::read_BUSCAN(void *p)
                 //if(id == 909 && (*dataBUSCAN->execute_control_thread))   // Velocidad
                 //  sem_post(&dataBUSCAN->semaforo_control_velocidad);
 
+                if(id == 1161) //ID MARCHAS
+                {
+                    p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
 
+                    dataBUSCAN->C4gear->marchas = crudeDataBUSCAN.data_t15.marchas;
+                    dataBUSCAN->C4gear->modo_cambio = crudeDataBUSCAN.data_t15.modo_cambio;
+                    dataBUSCAN->C4gear->timestamp = crudeDataBUSCAN.data_t15.timestamp;
 
-                if(id == 781)   // Msg de la velocidad 4 ruedas a 10ms
+                }
+                else if(id == 781)   // Msg de la velocidad 4 ruedas a 10ms
                 {
                     p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
 
@@ -548,6 +555,20 @@ void BUSCAN::parse_BUSCAN_ID(BUSCAN_crude_data_t *crudeDataBUSCAN, uint32_t *id,
         //break;
     } //End Switch (id)
 }
+
+
+double BUSCAN::getGear_Unblocking()
+{
+    double ret = 1.0;
+    if(m_BUSCAN_initialized)
+    {
+        pthread_mutex_lock(m_dataBUSCAN->p_BUSCAN_semaphore); //Protect data from being read
+        ret = (double)m_dataBUSCAN->C4gear->marchas;
+        pthread_mutex_unlock(m_dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
+    }
+    return  ret;
+}
+
 
 double BUSCAN::getSpeedMPS_Unblocking(C4speed_t **C4speeds)
 {
