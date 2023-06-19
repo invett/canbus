@@ -8,11 +8,10 @@
 int main(int argc, char **argv)
 {
   
-  ros::init(argc, argv, "canbus_driver");
+  ros::init(argc, argv, "canbus_node");
   ros::NodeHandle n;
 
-  //ros::Publisher speed_pub = n.advertise<std_msgs::Float64>("speed", 1);
-  ros::Publisher can_pub = n.advertise<canbus::can_msg>("data", 1);
+  ros::Publisher can_pub = n.advertise<canbus::can_msg>("/canbus/data", 1);
 
   sem_t can_sem;
   sem_init(&can_sem, 0, 0);
