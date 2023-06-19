@@ -113,13 +113,9 @@ void* BUSCAN::read_BUSCAN(void *p)
 
     while(p_this->m_dataBUSCAN->m_busCAN_thread_run)
     {
-        //printf("lee_BUSCAN_while 1 id=%d\n", id);
-
         //LEER DEL BUS CAN
         ret = canReadWait(dataBUSCAN->h, &id, &msg, &dlc, &flag, &time, -1);
 
-        //printf("lee_BUSCAN_while 1.5 id= %d\n", id);
-        //printf("\n\nret=%d", ret);
         switch (ret)
         {
         case canOK: //comando valido (ret=canOk=0)
@@ -150,11 +146,6 @@ void* BUSCAN::read_BUSCAN(void *p)
                 dataBUSCAN->data_raw[id_orden].flag=flag;
                 dataBUSCAN->data_raw[id_orden].time=time32;
 
-                //std::cerr<<"id "<< id32 << std::endl;
-
-                //if(id == 909 && (*dataBUSCAN->execute_control_thread))   // Velocidad
-                //  sem_post(&dataBUSCAN->semaforo_control_velocidad);
-
 
                 if(id == 520) //ID RPM, FRENO y PEDAL ACELERADOR
                 {
@@ -162,17 +153,19 @@ void* BUSCAN::read_BUSCAN(void *p)
 
                     dataBUSCAN->C4throttle->rpm = crudeDataBUSCAN.data_t0.rpm;
                     dataBUSCAN->C4throttle->pedal_acelerador = crudeDataBUSCAN.data_t0.pedal_acelerador;
+
                     dataBUSCAN->C4throttle->timestamp = crudeDataBUSCAN.data_t0.timestamp;
 
                 }
-                else if(id == 1161) //ID MARCHAS
+                else if(id == 773)  // Msg del volante
                 {
                     p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
 
-                    dataBUSCAN->C4gear->marchas = crudeDataBUSCAN.data_t15.marchas;
-                    //std::cerr<<"marcha "<< crudeDataBUSCAN.data_t15.marchas<< std::endl;
-                    dataBUSCAN->C4gear->modo_cambio = crudeDataBUSCAN.data_t15.modo_cambio;
-                    dataBUSCAN->C4gear->timestamp = crudeDataBUSCAN.data_t15.timestamp;
+                    dataBUSCAN->C4steer->gradosVolante = crudeDataBUSCAN.data_t2.volante_angulo;
+                    dataBUSCAN->C4steer->sentidoVolante = crudeDataBUSCAN.data_t2.volante_sentido;
+                    dataBUSCAN->C4steer->velocidadVolante = crudeDataBUSCAN.data_t2.volante_velocidad;
+
+                    dataBUSCAN->C4steer->timestamp = crudeDataBUSCAN.data_t2.timestamp;
 
                 }
                 else if(id == 781)   // Msg de la velocidad 4 ruedas a 10ms
@@ -201,27 +194,7 @@ void* BUSCAN::read_BUSCAN(void *p)
 
                     dataBUSCAN->C4speeds->timestamp = crudeDataBUSCAN.data_t3.timestamp;
                 }
-                else if(id == 773)  // Msg del volante
-                {
-                    p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
-
-                    dataBUSCAN->C4steer->gradosVolante = crudeDataBUSCAN.data_t2.volante_angulo;
-                    dataBUSCAN->C4steer->sentidoVolante = crudeDataBUSCAN.data_t2.volante_sentido;
-                    dataBUSCAN->C4steer->velocidadVolante = crudeDataBUSCAN.data_t2.volante_velocidad;
-
-                    dataBUSCAN->C4steer->timestamp = crudeDataBUSCAN.data_t2.timestamp;
-
-                }
-                else if (id == 973)
-                {
-                    p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
-
-                    dataBUSCAN->C4brake->intensidad_freno = crudeDataBUSCAN.data_t8.freno_servicio_intensidad;
-                    dataBUSCAN->C4brake->freno_servicio = crudeDataBUSCAN.data_t8.freno_servicio;
-
-                    dataBUSCAN->C4brake->timestamp = crudeDataBUSCAN.data_t8.freno_servicio;
-                }
-                else if (id == 909)
+               else if (id == 909)
                 {
                     p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
 
@@ -230,6 +203,25 @@ void* BUSCAN::read_BUSCAN(void *p)
                     dataBUSCAN->C4accelDist->distRecorridaCiclicaM = crudeDataBUSCAN.data_t7.distancia;
 
                     dataBUSCAN->C4accelDist->timestamp = crudeDataBUSCAN.data_t7.timestamp;
+                }
+                 else if (id == 973)
+                {
+                    p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
+
+                    dataBUSCAN->C4brake->intensidad_freno = crudeDataBUSCAN.data_t8.freno_servicio_intensidad;
+                    dataBUSCAN->C4brake->freno_servicio = crudeDataBUSCAN.data_t8.freno_servicio;
+
+                    dataBUSCAN->C4brake->timestamp = crudeDataBUSCAN.data_t8.freno_servicio;
+                }
+                else if(id == 1161) //ID MARCHAS
+                {
+                    p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
+
+                    dataBUSCAN->C4gear->marchas = crudeDataBUSCAN.data_t15.marchas;
+                    dataBUSCAN->C4gear->modo_cambio = crudeDataBUSCAN.data_t15.modo_cambio;
+
+                    dataBUSCAN->C4gear->timestamp = crudeDataBUSCAN.data_t15.timestamp;
+
                 }
 
                 pthread_mutex_unlock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
