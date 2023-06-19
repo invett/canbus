@@ -10,6 +10,7 @@ BUSCAN::BUSCAN(sem_t* sem_HLC)
     m_dataBUSCAN->C4steer = (C4steer_t *) malloc(sizeof(C4steer_t));
     m_dataBUSCAN->C4brake = (C4brake_t *) malloc(sizeof(C4brake_t));
     m_dataBUSCAN->C4gear = (BUSCAN_data_t15_t *) malloc(sizeof(BUSCAN_data_t15_t));
+    m_dataBUSCAN->C4throttle = (BUSCAN_data_t0_t *) malloc(sizeof(BUSCAN_data_t0_t));
     m_dataBUSCAN->C4accelDist = (C4accelDist_t *) malloc(sizeof(C4accelDist_t));
     m_BUSCAN_initialized = false;
 }
@@ -33,6 +34,7 @@ BUSCAN::~BUSCAN()
     free(m_dataBUSCAN->C4brake);
     free(m_dataBUSCAN->C4accelDist);
     free(m_dataBUSCAN->C4gear);
+    free(m_dataBUSCAN->C4throttle);
     free(m_dataBUSCAN->p_BUSCAN_semaphore);
     free(m_dataBUSCAN);
 }
@@ -124,7 +126,7 @@ void* BUSCAN::read_BUSCAN(void *p)
 
             //printf("lee_BUSCAN_while 2\n");
 
-            if(id == 773 || id == 973 || id == 909 || id==1101 || id==781 || id==1161)
+            if(id == 773 || id == 973 || id == 909 || id==1101 || id==781 || id==1161 || id==520)
             {
 
                 pthread_mutex_lock(dataBUSCAN->p_BUSCAN_semaphore); //Protect data from being read
@@ -153,7 +155,17 @@ void* BUSCAN::read_BUSCAN(void *p)
                 //if(id == 909 && (*dataBUSCAN->execute_control_thread))   // Velocidad
                 //  sem_post(&dataBUSCAN->semaforo_control_velocidad);
 
-                if(id == 1161) //ID MARCHAS
+
+                if(id == 520) //ID RPM, FRENO y PEDAL ACELERADOR
+                {
+                    p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
+
+                    dataBUSCAN->C4throttle->rpm = crudeDataBUSCAN.data_t0.rpm;
+                    dataBUSCAN->C4throttle->pedal_acelerador = crudeDataBUSCAN.data_t0.pedal_acelerador;
+                    dataBUSCAN->C4throttle->timestamp = crudeDataBUSCAN.data_t0.timestamp;
+
+                }
+                else if(id == 1161) //ID MARCHAS
                 {
                     p_this->parse_BUSCAN_ID(&crudeDataBUSCAN, &id32, msg, &dlc8, &flag, &time32);
 
@@ -559,6 +571,18 @@ void BUSCAN::parse_BUSCAN_ID(BUSCAN_crude_data_t *crudeDataBUSCAN, uint32_t *id,
         break;
         //break;
     } //End Switch (id)
+}
+
+double BUSCAN::getThrottle_Unblocking()
+{
+    double ret = 0.0;
+    if(m_BUSCAN_initialized)
+    {
+        pthread_mutex_lock(m_dataBUSCAN->p_BUSCAN_semaphore); //Protect data from being read
+        ret = (double)m_dataBUSCAN->C4throttle->pedal_acelerador;
+        pthread_mutex_unlock(m_dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
+    }
+    return  ret;
 }
 
 

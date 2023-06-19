@@ -37,7 +37,9 @@ int main(int argc, char **argv)
         msg.speed = busCAN.getSpeedMPS_Unblocking(&p);
         msg.steer = busCAN.getSteeringWheelPosition_Unblocking(&s);
         msg.brake = busCAN.getBrakeForce_Unblocking(&b);
+        msg.throttle = busCAN.getThrottle_Unblocking();
         msg.gear = busCAN.getGear_Unblocking();
+
         if((estado_marchas)msg.gear == estado_marchas::R)
         {
             msg.speed = -msg.speed;

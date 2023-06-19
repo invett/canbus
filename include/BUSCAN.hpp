@@ -400,6 +400,7 @@ typedef struct
     C4brake_t               *C4brake;
     C4accelDist_t           *C4accelDist;
     BUSCAN_data_t15_t       *C4gear;
+    BUSCAN_data_t0_t        *C4throttle;
 }BUSCAN_t;
 
 
@@ -418,6 +419,7 @@ public:
     int init_BUSCAN(int bitrate);
 
     double getGear_Unblocking();
+    double getThrottle_Unblocking();
 
     double getSpeedMPS_Unblocking(C4speed_t **C4speeds);
     double getSpeedMPS_Blocking(C4speed_t **C4speeds);
