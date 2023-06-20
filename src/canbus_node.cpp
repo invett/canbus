@@ -4,6 +4,7 @@
 
 #include "BUSCAN.hpp"
 #include "canbus/can_msg.h"
+#include "canbus/can_raw.h"
 
 int main(int argc, char **argv)
 {
@@ -12,6 +13,7 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
   ros::Publisher can_pub = n.advertise<canbus::can_msg>("/canbus/data", 1);
+  ros::Publisher can_raw_pub = n.advertise<canbus::can_raw>("/canbus/raw", 1);
 
   sem_t can_sem;
   sem_init(&can_sem, 0, 0);
@@ -32,6 +34,11 @@ int main(int argc, char **argv)
       {
 
         sem_wait(&can_sem);
+
+        canbus::can_raw raw_msg;
+        raw_msg.id = busCAN.get_raw_msg_id();
+        busCAN.get_raw_msg(&(raw_msg.raw[0]));
+        can_raw_pub.publish(raw_msg);
 
         canbus::can_msg msg;
         msg.speed = busCAN.getSpeedMPS_Unblocking(&p);

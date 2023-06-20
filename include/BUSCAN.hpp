@@ -413,10 +413,16 @@ private:
     BUSCAN_t* m_dataBUSCAN;
     sem_t*      m_sem_HLC;
 
+    long m_id;
+    unsigned char m_msg[8];
+
 public:
     BUSCAN(sem_t *sem_HLC);
     ~BUSCAN();
     int init_BUSCAN(int bitrate);
+
+    int get_raw_msg_id();
+    void get_raw_msg(unsigned char *p);
 
     double getGear_Unblocking();
     double getThrottle_Unblocking();

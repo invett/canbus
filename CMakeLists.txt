@@ -46,6 +46,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs genmsg message_gen
 add_message_files(
   FILES
   can_msg.msg
+  can_raw.msg
 )
 
 ## Generate services in the 'srv' folder

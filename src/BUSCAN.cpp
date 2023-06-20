@@ -122,6 +122,15 @@ void* BUSCAN::read_BUSCAN(void *p)
 
             //printf("lee_BUSCAN_while 2\n");
 
+
+            sem_post(p_this->m_sem_HLC);
+            pthread_mutex_unlock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
+            p_this->m_id = id;
+            memcpy(&(p_this->m_msg), msg, sizeof(msg));
+            pthread_mutex_unlock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
+
+
+
             if(id == 773 || id == 973 || id == 909 || id==1101 || id==781 || id==1161 || id==520)
             {
 
@@ -226,12 +235,10 @@ void* BUSCAN::read_BUSCAN(void *p)
 
                 pthread_mutex_unlock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
 
-
                 // Control con ciclo de 10ms y v4Ruedas
                 if(id == 781)   // Velocidad
                 {
                     sem_post(&(dataBUSCAN->speed_control_thread_semaphore));
-                    sem_post(p_this->m_sem_HLC);
                 }
 
                 if(id == 773)   // Volante
@@ -682,4 +689,18 @@ double BUSCAN::getSteeringWheelPosition_Blocking(C4steer_t **C4steer)
     }
 
     return  ret;
+}
+
+int BUSCAN::get_raw_msg_id()
+{
+    pthread_mutex_lock(m_dataBUSCAN->p_BUSCAN_semaphore); //Protect data from being read
+    return m_id;
+    pthread_mutex_unlock(m_dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
+}
+
+void BUSCAN::get_raw_msg(unsigned char *p)
+{
+    pthread_mutex_lock(m_dataBUSCAN->p_BUSCAN_semaphore); //Protect data from being read
+    memcpy(p, &m_msg, sizeof(m_msg));
+    pthread_mutex_unlock(m_dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
 }
