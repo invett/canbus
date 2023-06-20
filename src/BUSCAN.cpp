@@ -124,7 +124,7 @@ void* BUSCAN::read_BUSCAN(void *p)
 
 
             sem_post(p_this->m_sem_HLC);
-            pthread_mutex_unlock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
+            pthread_mutex_lock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
             p_this->m_id = id;
             memcpy(&(p_this->m_msg), msg, sizeof(msg));
             pthread_mutex_unlock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
