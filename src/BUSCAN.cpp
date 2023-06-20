@@ -120,18 +120,17 @@ void* BUSCAN::read_BUSCAN(void *p)
         {
         case canOK: //comando valido (ret=canOk=0)
 
-            //printf("lee_BUSCAN_while 2\n");
 
-
-            sem_post(p_this->m_sem_HLC);
+            
             pthread_mutex_lock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
             p_this->m_id = id;
             memcpy(&(p_this->m_msg), msg, sizeof(msg));
             pthread_mutex_unlock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
+            sem_post(p_this->m_sem_HLC);
+            
 
 
-
-            if(id == 773 || id == 973 || id == 909 || id==1101 || id==781 || id==1161 || id==520)
+            if(id==520 || id == 773 || id==781 || id == 909 || id == 973 || id==1101 || id==1161)
             {
 
                 pthread_mutex_lock(dataBUSCAN->p_BUSCAN_semaphore); //Protect data from being read
@@ -236,17 +235,18 @@ void* BUSCAN::read_BUSCAN(void *p)
                 pthread_mutex_unlock(dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
 
                 // Control con ciclo de 10ms y v4Ruedas
-                if(id == 781)   // Velocidad
-                {
-                    sem_post(&(dataBUSCAN->speed_control_thread_semaphore));
-                }
+                // if(id == 781)   // Velocidad
+                // {
+                //     sem_post(&(dataBUSCAN->speed_control_thread_semaphore));
+                // }
 
-                if(id == 773)   // Volante
-                    sem_post(&(dataBUSCAN->steering_wheel_control_thread_semaphore));
+                // if(id == 773)   // Volante
+                //     sem_post(&(dataBUSCAN->steering_wheel_control_thread_semaphore));
 
-                if(id == 973)   // Freno
-                    sem_post(&(dataBUSCAN->brake_control_thread_semaphore));
+                // if(id == 973)   // Freno
+                //     sem_post(&(dataBUSCAN->brake_control_thread_semaphore));
             }
+            
             break;
         case canERR_NOMSG:
             perror("canERR_NOMSG error");
@@ -693,9 +693,11 @@ double BUSCAN::getSteeringWheelPosition_Blocking(C4steer_t **C4steer)
 
 int BUSCAN::get_raw_msg_id()
 {
-    pthread_mutex_lock(m_dataBUSCAN->p_BUSCAN_semaphore); //Protect data from being read
-    return m_id;
-    pthread_mutex_unlock(m_dataBUSCAN->p_BUSCAN_semaphore); /* Release data for reading */
+    int ret = 0;
+    pthread_mutex_lock(m_dataBUSCAN->p_BUSCAN_semaphore); //Protect data
+    ret = m_id;
+    pthread_mutex_unlock(m_dataBUSCAN->p_BUSCAN_semaphore); //Release data
+    return ret;
 }
 
 void BUSCAN::get_raw_msg(unsigned char *p)

@@ -30,30 +30,35 @@ int main(int argc, char **argv)
       C4steer_t *s;
       C4brake_t *b;
 
+      canbus::can_raw raw_msg;
+      canbus::can_msg msg;
+
       while (ros::ok())
       {
 
-        sem_wait(&can_sem);
-
-        canbus::can_raw raw_msg;
+        sem_wait(&can_sem); // new can raw message
+        
         raw_msg.id = busCAN.get_raw_msg_id();
         busCAN.get_raw_msg(&(raw_msg.raw[0]));
         can_raw_pub.publish(raw_msg);
 
-        canbus::can_msg msg;
-        msg.speed = busCAN.getSpeedMPS_Unblocking(&p);
-        msg.steer = busCAN.getSteeringWheelPosition_Unblocking(&s);
-        msg.brake = busCAN.getBrakeForce_Unblocking(&b);
-        msg.throttle = busCAN.getThrottle_Unblocking();
-        msg.gear = busCAN.getGear_Unblocking();
+        // Hbaria que crear otro nodo que se subscriba a los mensajes en raw y los parsee
+        // mientras tanto los parseamos aqui...
 
-        if((estado_marchas)msg.gear == estado_marchas::R)
+        if(raw_msg.id == 781) // new speed message, pack info and share it
         {
-            msg.speed = -msg.speed;
-        }
+          msg.speed = busCAN.getSpeedMPS_Unblocking(&p);
+          msg.steer = busCAN.getSteeringWheelPosition_Unblocking(&s);
+          msg.brake = busCAN.getBrakeForce_Unblocking(&b);
+          msg.throttle = busCAN.getThrottle_Unblocking();
+          msg.gear = busCAN.getGear_Unblocking();
 
-        ROS_DEBUG("%lf %lf %lf %lf", msg.speed, msg.steer, msg.brake, msg.gear);
-        can_pub.publish(msg);
+          if((estado_marchas)msg.gear == estado_marchas::R)
+              msg.speed = -msg.speed;
+
+          can_pub.publish(msg);
+          ROS_DEBUG("%lf %lf %lf %lf", msg.speed, msg.steer, msg.brake, msg.gear);
+        }
 
         ros::spinOnce();
       }
@@ -64,5 +69,4 @@ int main(int argc, char **argv)
       ROS_ERROR("No se pudo inicializar el BUSCAN ");
       return 0;
     }
-
 }
