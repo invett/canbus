@@ -13,21 +13,6 @@
 
 #include <unistd.h>
 #include <fcntl.h>
-
-//#include <signal.h>
-//#include <errno.h>
-//#include <time.h>
-//#include <sys/types.h>
-//#include <sys/stat.h>
-//#include <termios.h>
-//#include <sys/signal.h>
-//#include <sys/types.h>
-//#include <sys/ipc.h>
-//#include <sys/shm.h>
-//#include <sys/select.h>
-//#include <sys/time.h>
-
-
 #include <iostream>
 
 #define NUM_IDS 29
@@ -37,7 +22,6 @@
 #define VEL1_WIPER_WEIGHT 0.4           //Pesos para ponderar la activacion del limpiaparabrisas en funcion de la velocidad
 #define VEL2_WIPER_WEIGHT 0.6           //Pesos para ponderar la activacion del limpiaparabrisas en funcion de la velocidad
 #define VEL3_WIPER_WEIGHT 0.8		//Pesos para ponderar la activacion del limpiaparabrisas en funcion de la velocidad
-
 
 enum estado_intermitente {intermitente_off, intermitente_izquierda, intermitente_derecha};
 enum estado_luces_emergencia {emergencia_off, emergencia_on};
@@ -318,52 +302,6 @@ typedef struct
     BUSCAN_data_t28_t data_t28;
 }BUSCAN_crude_data_t;
 
-typedef struct
-{
-    double vdiKPH;
-    double vddKPH;
-    double vtiKPH;
-    double vtdKPH;
-
-    double vdiMPS;
-    double vddMPS;
-    double vtiMPS;
-    double vtdMPS;
-
-    double vdKPH;
-    double vtKPH;
-
-    double vdMPS;
-    double vtMPS;
-
-    double vKPH;
-    double vMPS;
-    uint32_t timestamp;
-}C4speed_t;
-
-typedef struct
-{
-    double gradosVolante;
-    double velocidadVolante;
-    int8_t sentidoVolante;
-    uint32_t timestamp;
-}C4steer_t;
-
-typedef struct
-{
-    uint32_t timestamp;
-    uint8_t freno_servicio;
-    double intensidad_freno;
-}C4brake_t;
-
-typedef struct
-{
-    uint32_t timestamp;
-    double velKMH;
-    double accMPS2;
-    double distRecorridaCiclicaM;
-}C4accelDist_t;
-
 //Estructura de datos BUSCAN en Bruto
 //_________________________________________________________________________________________________
 
@@ -380,62 +318,4 @@ struct _BUSCAN_raw_data_t
 } __attribute__((__packed__));
 typedef struct _BUSCAN_raw_data_t BUSCAN_raw_data_t;
 
-typedef struct
-{
-    // BUSCAN_crude_data_t        crudeData;
-    BUSCAN_raw_data_t       data_raw[NUM_IDS]; //Estructuras con datos en bruto de cada ID
-    canHandle               h;
-
-    pthread_t               BUSCAN_thread;
-    bool                    m_busCAN_thread_run = false;
-
-    sem_t                   speed_control_thread_semaphore;
-    sem_t                   steering_wheel_control_thread_semaphore;
-    sem_t                   brake_control_thread_semaphore;
-
-    pthread_mutex_t*        p_BUSCAN_semaphore;
-
-    C4speed_t               *C4speeds;
-    C4steer_t               *C4steer;
-    C4brake_t               *C4brake;
-    C4accelDist_t           *C4accelDist;
-    BUSCAN_data_t15_t       *C4gear;
-    BUSCAN_data_t0_t        *C4throttle;
-}BUSCAN_t;
-
-
-class BUSCAN
-{
-private:
-    static void* read_BUSCAN(void *p);
-    void get_BUSCAN_ID(uint32_t *id, int8_t *id_orden);
-    void parse_BUSCAN_ID(BUSCAN_crude_data_t *crudeDataBUSCAN, uint32_t *id, unsigned char *msg, uint8_t *dlc, uint32_t *flag, uint32_t *time);
-    BUSCAN_t* m_dataBUSCAN;
-    sem_t*      m_sem_HLC;
-
-    long m_id;
-    unsigned char m_msg[8];
-
-public:
-    BUSCAN(sem_t *sem_HLC);
-    ~BUSCAN();
-    int init_BUSCAN(int bitrate);
-
-    int get_raw_msg_id();
-    void get_raw_msg(unsigned char *p);
-
-    double getGear_Unblocking();
-    double getThrottle_Unblocking();
-
-    double getSpeedMPS_Unblocking(C4speed_t **C4speeds);
-    double getSpeedMPS_Blocking(C4speed_t **C4speeds);
-
-    double getBrakeForce_Unblocking(C4brake_t **C4brake);
-    double getBrakeForce_Blocking(C4brake_t **C4brake);
-
-    double getSteeringWheelPosition_Unblocking(C4steer_t **C4steer);
-    double getSteeringWheelPosition_Blocking(C4steer_t **C4steer);
-
-    bool m_BUSCAN_initialized;
-};
 #endif // BUSCAN_H
